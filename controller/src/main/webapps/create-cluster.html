@@ -1,0 +1,148 @@
+<!DOCTYPE HTML>
+<html>
+<body>
+<h2>Create A New Cluster</h2>
+<form class="form">
+<p>Cluster Name</p>
+<p>
+  <input type="text" id="cluster" value="" size="50">
+  <span id="cluster_message" class="warn"></span>
+</p>
+<p>Nodes List</p>
+<p>
+  <input type="text" id="nodes" value="http://localhost:4080/v1/nodes/manifest/sample" class="formInput">
+  <span id="nodes_message" class="warn"></span>
+</p>
+<p>Software Stack</p>
+<p>
+  <input type="text" id="software" value="http://localhost:4080/v1/software/manifest/sample" class="formInput">
+  <span id="software_message" class="warn"></span>
+</p>
+<p>Configuration Blue Print</p>
+<p>
+  <input type="text" id="config" value="http://localhost:4080/v1/config/manifest/create-hadoop-cluster" class="formInput">
+  <span id="config_message" class="warn"></span>
+</p>
+  <p>
+    <button type="submit" id="create" onClick="return createCluster()">Create</button>
+    <button type="submit" id="cancel" onclick="javascript:window.location='/';">Cancel</button>
+  </p>
+</form>
+<script type="text/javascript">
+function createCluster() {
+  var cluster = $('#cluster').val();
+  var nodes = $('#nodes').val();
+  var config = $('#config').val();
+  var software = $('#software').val();
+  var bailout = false;
+
+  if(cluster=="") {
+    $('#cluster_message').text("Cluster name can not be empty.");
+    bailout = true;
+  }
+
+  if(nodes=="") {
+    $('#nodes_message').text("Nodes list URL can not be empty.");
+    bailout = true;
+  }
+
+  if(software=="") {
+    $('#software_message').text("Software stack URL can not be empty.");
+    bailout = true;
+  }
+
+  if(config=="") {
+    $('#config_message').text("Config blueprint URL can not be empty.");
+    bailout = true;
+  }
+
+  if(bailout) {
+    return false;
+  }
+
+  var data = '{"cmd":"create","dry-run":"false","clusterManifest":{"@clusterName":"'+cluster+'","nodes":{"@url":"'+nodes+'"},"software":{"@url":"'+software+'"},"config":{"@url":"'+config+'"}}}';
+    $.ajax({
+      type: 'POST',
+      url: '/v1/controller/create/cluster',
+      contentType: "application/json; charset=utf-8",
+      data: data,
+      success: function(data) {
+        var url = '/?func=status-command&cmd='+data['output'];
+        window.location.href = url;
+      },
+      dataType:'json'
+    });
+  return false;
+}
+
+$(document).ready(function() {
+  var prefix = window.location.protocol+'//'+window.location.hostname+':'+window.location.port;
+  $.ajax({
+    type: 'GET',
+    url: '/v1/nodes/manifest',
+    dataType:'json',
+    success: function(data) {
+      var nodes = data['nodesManifest'];
+      var list = [];
+      var x = 0;
+      if(nodes.constructor.toString().indexOf('Array') == -1) {
+        list[x++] = nodes['@url'];
+      } else {
+        for(var node in nodes) {
+          list[x++] = nodes[node]['@url'];
+        }
+      }
+      if(list.length>0) {
+        $('#nodes').val(list[0]);
+      }
+      $('input#nodes').autocomplete({ source : list });
+    }
+  }); 
+  $.ajax({
+    type: 'GET',
+    url: '/v1/software/stack',
+    dataType:'json',
+    success: function(data) {
+      var stacks = data['softwareManifest'];
+      var list = [];
+      var x = 0;
+      if(stacks.constructor.toString().indexOf('Array') == -1) {
+        list[x++] = stacks['@url'];
+      } else {
+        for(var stack in stacks) {
+          list[x++] = stacks[stack]['@url'];
+        }
+      }
+      if(list.length>0) {
+        $('#software').val(list[0]);
+      }
+      $('#software').autocomplete({ source : list });
+    }
+  }); 
+  $.ajax({
+    type: 'GET',
+    url: '/v1/config/blueprint',
+    dataType:'json',
+    success: function(data) {
+      var blueprints = data['configManifest'];
+      var list = [];
+      var x = 0;
+      if(blueprints.constructor.toString().indexOf('Array') == -1) {
+        list[x++] = blueprints['@url'];
+      } else {
+        for(var blueprint in blueprints) {
+          list[x++] = blueprints[blueprint]['@url'];
+        }
+      }
+      if(list.length>0) {
+        $('#config').val(list[0]);
+      }
+      $('#config').autocomplete({ source : list });
+    }
+  });
+  $("#navigation").load("/nav.html");
+});
+
+</script>
+</body>
+</html>
