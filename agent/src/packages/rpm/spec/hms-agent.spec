@@ -56,7 +56,7 @@ Prefix: %{_conf_dir}
 Prefix: %{_log_dir}
 Prefix: %{_pid_dir}
 Buildroot: %{_build_dir}
-Requires: sh-utils, textutils, /usr/sbin/useradd, /usr/sbin/usermod, /sbin/chkconfig, /sbin/service, transmission-cli, zkpython, zookeeper-lib, BitTorrent-bencode, mimerender, simplejson, mimeparse, web.py, python-setuptools, libevent >= 2.0.10, avahi-tools, python-iniparse
+Requires: sh-utils, textutils, /usr/sbin/useradd, /usr/sbin/usermod, /sbin/chkconfig, /sbin/service, transmission-cli, zkpython, zookeeper-lib, python-simplejson, python-setuptools, avahi-tools, python-iniparse
 AutoReqProv: no
 Provides: hms-agent
 
@@ -87,6 +87,8 @@ mkdir -p ${RPM_BUILD_DIR}/etc/init.d
 
 cp ${RPM_BUILD_DIR}/../../../../src/packages/rpm/init.d/hms-agent ${RPM_BUILD_DIR}/etc/init.d/hms-agent
 chmod 0755 ${RPM_BUILD_DIR}/etc/init.d/hms-agent
+
+cp -a ${RPM_BUILD_DIR}/* ${RPM_BUILD_DIR}/../BUILDROOT
 
 %preun
 rm -rf /etc/default/hms-agent-env.sh

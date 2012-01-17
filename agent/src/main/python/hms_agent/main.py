@@ -20,34 +20,19 @@ limitations under the License.
 
 import logging
 import logging.handlers
-from mimerender import mimerender
-import mimeparse
 from Runner import Runner
 import code
 import signal
 import simplejson
 import sys, traceback
-import web
 import os
 import time
 import ConfigParser
-from PackageHandler import PackageHandler
-from DaemonHandler import DaemonHandler
-from ShellHandler import ShellHandler
 from ZooKeeperCommunicator import ZooKeeperCommunicator
 from createDaemon import createDaemon
 from Zeroconf import dnsResolver
 
 logger = logging.getLogger()
-
-urls = (
-    '/package/info/(.*)', 'PackageHandler',
-    '/package/(.*)', 'PackageHandler',
-    '/daemon/status/(.*)', 'DaemonHandler',
-    '/daemon/(.*)', 'DaemonHandler',
-    '/shell/(.*)', 'ShellHandler'
-)
-app = web.application(urls, globals())
 
 if 'HMS_PID_DIR' in os.environ:
   pidfile = os.environ['HMS_PID_DIR'] + "/hms-agent.pid"
@@ -126,9 +111,14 @@ def main():
         time.sleep(3)
         loop = loop + 1
   logger.info("Connecting to "+zkservers+".")
-  zc = ZooKeeperCommunicator(zkservers, credential)
-  zc.start()
-  zc.run()
+  while True:
+    try:
+      zc = ZooKeeperCommunicator(zkservers, credential)
+      zc.start()
+      zc.run()
+    except Exception, err:
+      logger.error(traceback.format_exc())
+      zc = None
     
 if __name__ == "__main__":
   main()

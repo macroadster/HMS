@@ -89,7 +89,7 @@
         </replacetokens>
       </filterchain>
     </copy>
-    <rpm specFile="hms-agent.spec" command="-bb" topDir="${project.build.directory}/rpm/hms" cleanBuildDir="true" failOnError="true"/>
+    <rpm specFile="hms-agent.spec" command="-bb --buildroot=${project.build.directory}/rpm/hms/BUILDROOT" topDir="${project.build.directory}/rpm/hms" cleanBuildDir="true" failOnError="true"/>
     <copy todir="${project.build.directory}" flatten="true">
       <fileset dir="${project.build.directory}/rpm/hms/RPMS">
         <include name="**/*.rpm" />

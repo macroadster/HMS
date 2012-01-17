@@ -32,9 +32,6 @@ __contributors__ = "see http://incubator.apache.org/hms/contributors"
 
 import logging
 import logging.handlers
-import web
-import mimeparse
-import mimerender
 import simplejson
 import bencode
 import threading
