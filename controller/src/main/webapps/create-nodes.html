@@ -21,7 +21,7 @@
       </form>
     </section>
     <script type="text/javascript">
-      var roles = [ "namenode", "secondary-namenode", "datanode", "jobtracker", "tasktracker", "gateway", "jobhistory-server" ];
+      var roles = [ "namenode", "secondary-namenode", "datanode", "jobtracker", "tasktracker", "gateway" ];
       var labelError = "What is the node list name?";
       var hostError = "Role can not be empty.";
       function addRole(type) {
@@ -98,14 +98,18 @@
           function(data) {
             var $software = $("#software");
             $software.empty();
-            $.each(data["softwareManifest"], function () {
-              var roles = [];
-              var i = 0;
-              $.each(this['roles'], function() {
-                roles[i++] = this['@name'];
+            if(data["softwareManifest"].constructor.toString().indexOf('Array') == -1) {
+              $software.append($('<option></option>').attr("value", roles).text(data["softwareManifest"]['@url']));
+            } else {
+              $.each(data["softwareManifest"], function () {
+                var roles = [];
+                var i = 0;
+                $.each(this['roles'], function() {
+                  roles[i++] = this['@name'];
+                });
+                $software.append($('<option></option>').attr("value", roles).text(this['@url']));
               });
-              $software.append($('<option></option>').attr("value", roles).text(this['@url']));
-            });
+            }
           }
         );
         $('#form').dataTable({

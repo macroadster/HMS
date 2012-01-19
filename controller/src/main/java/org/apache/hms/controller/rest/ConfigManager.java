@@ -98,15 +98,20 @@ public class ConfigManager {
     ScriptAction setupConfig = new ScriptAction();
     setupConfig.setScript("/usr/sbin/hadoop-setup-conf.sh");
     int i=0;
-    String[] parameters = new String[9];
-    parameters[i++] = "--namenode-url=hdfs://${namenode}:9000/";
-    parameters[i++] = "--jobtracker-url=${jobtracker}:9001";
+    String[] parameters = new String[14];
+    parameters[i++] = "--namenode-host=${namenode}";
+    parameters[i++] = "--jobtracker-host=${jobtracker}";
+    parameters[i++] = "--secondarynamenode-host=${secondary-namenode}";
+    parameters[i++] = "--datanodes=${datanode}";
+    parameters[i++] = "--tasktrackers=${tasktracker}";
     parameters[i++] = "--conf-dir=/etc/hadoop";
-    parameters[i++] = "--hdfs-dir=/grid/0/hadoop/var/hdfs";
-    parameters[i++] = "--namenode-dir=/grid/0/hadoop/var/hdfs/namenode";
-    parameters[i++] = "--mapred-dir=/grid/0/tmp/mapred-local,/grid/1/tmp/mapred-local,/grid/2/tmp/mapred-local,/grid/3/tmp/mapred-local,/grid/4/tmp/mapred-local,/grid/5/tmp/mapred-local";
-    parameters[i++] = "--datanode-dir=/grid/0/hadoop/var/hdfs/data,/grid/1/hadoop/var/hdfs/data,/grid/2/hadoop/var/hdfs/data,/grid/3/hadoop/var/hdfs/data,/grid/4/hadoop/var/hdfs/data,/grid/5/hadoop/var/hdfs/data";
+    parameters[i++] = "--hdfs-dir=/var/lib/hdfs";
+    parameters[i++] = "--namenode-dir=/var/lib/hdfs/namenode";
+    parameters[i++] = "--mapred-dir=/var/lib/mapreduce";
+    parameters[i++] = "--datanode-dir=/var/lib/hdfs/data";
     parameters[i++] = "--log-dir=/var/log/hadoop";
+    parameters[i++] = "--hdfs-user=hdfs";
+    parameters[i++] = "--mapreduce-user=mapred";
     parameters[i++] = "--auto";
     setupConfig.setParameters(parameters);
     List<StateEntry> expectedConfigResults = new LinkedList<StateEntry>();
@@ -118,9 +123,10 @@ public class ConfigManager {
     ScriptAction setupHdfs = new ScriptAction();
     setupHdfs.setRole("namenode");
     setupHdfs.setScript("/usr/sbin/hadoop-setup-hdfs.sh");
-    String[] hdfsParameters = new String[2];
-    hdfsParameters[0]="-c";
-    hdfsParameters[1]="oxygen";
+    String[] hdfsParameters = new String[3];
+    hdfsParameters[0]="--format";
+    hdfsParameters[1]="--hdfs-user=hdfs";
+    hdfsParameters[2]="--mapreduce-user=mapred";
     setupHdfs.setParameters(hdfsParameters);
     // Setup dependencies       
     List<ActionDependency> dep = new LinkedList<ActionDependency>();
@@ -153,9 +159,9 @@ public class ConfigManager {
     dep.add(new ActionDependency(roles, states));
     dataNodeAction.setDependencies(dep);
     // Setup expected result
-//    List<StateEntry> expectedDatanodeResults = new LinkedList<StateEntry>();
-//    expectedDatanodeResults.add(new StateEntry(StateType.DAEMON, "hadoop-datanode", Status.STARTED));
-//    dataNodeAction.setExpectedResults(expectedDatanodeResults);
+    List<StateEntry> expectedDatanodeResults = new LinkedList<StateEntry>();
+    expectedDatanodeResults.add(new StateEntry(StateType.DAEMON, "hadoop-datanode", Status.STARTED));
+    dataNodeAction.setExpectedResults(expectedDatanodeResults);
     actions.add(dataNodeAction);
 
     // Start Jobtracker
@@ -172,9 +178,9 @@ public class ConfigManager {
     dep.add(new ActionDependency(roles, states));
     jobTrackerAction.setDependencies(dep);
     // Setup expected result
-//    List<StateEntry> expectedJobtrackerResults = new LinkedList<StateEntry>();
-//    expectedJobtrackerResults.add(new StateEntry(StateType.DAEMON, "hadoop-jobtracker", Status.STARTED));
-//    jobTrackerAction.setExpectedResults(expectedJobtrackerResults);
+    List<StateEntry> expectedJobtrackerResults = new LinkedList<StateEntry>();
+    expectedJobtrackerResults.add(new StateEntry(StateType.DAEMON, "hadoop-jobtracker", Status.STARTED));
+    jobTrackerAction.setExpectedResults(expectedJobtrackerResults);
     actions.add(jobTrackerAction);
     
     // Start Tasktrackers
@@ -191,9 +197,9 @@ public class ConfigManager {
     dep.add(new ActionDependency(roles, states));
     taskTrackerAction.setDependencies(dep);
     // Setup expected result
-//    List<StateEntry> expectedTasktrackerResults = new LinkedList<StateEntry>();
-//    expectedTasktrackerResults.add(new StateEntry(StateType.DAEMON, "hadoop-tasktracker", Status.STARTED));
-//    taskTrackerAction.setExpectedResults(expectedTasktrackerResults);
+    List<StateEntry> expectedTasktrackerResults = new LinkedList<StateEntry>();
+    expectedTasktrackerResults.add(new StateEntry(StateType.DAEMON, "hadoop-tasktracker", Status.STARTED));
+    taskTrackerAction.setExpectedResults(expectedTasktrackerResults);
     actions.add(taskTrackerAction);
     
     ConfigManifest cm = new ConfigManifest();
@@ -214,10 +220,30 @@ public class ConfigManager {
     ScriptAction nuke = new ScriptAction();
     nuke.setScript("ps");
     int i=0;
-    String[] parameters = new String[3];
-    parameters[i++] = "ax | grep hms/apps | grep -v grep | cut -b 1-5 | xargs kill -9 || exit 0";
-    nuke.setParameters(parameters);
-    actions.add(nuke);
+
+    DaemonAction nameNodeAction = new DaemonAction();
+    nameNodeAction.setDaemonName("hadoop-namenode");
+    nameNodeAction.setActionType("stop");
+    nameNodeAction.setRole("namenode");
+    actions.add(nameNodeAction);
+
+    DaemonAction dataNodeAction = new DaemonAction();
+    dataNodeAction.setDaemonName("hadoop-datanode");
+    dataNodeAction.setActionType("stop");
+    dataNodeAction.setRole("datanode");
+    actions.add(dataNodeAction);
+
+    DaemonAction jobTrackerAction = new DaemonAction();
+    jobTrackerAction.setDaemonName("hadoop-jobtracker");
+    jobTrackerAction.setActionType("stop");
+    jobTrackerAction.setRole("jobtracker");
+    actions.add(jobTrackerAction);
+
+    DaemonAction taskTrackerAction = new DaemonAction();
+    taskTrackerAction.setDaemonName("hadoop-tasktracker");
+    taskTrackerAction.setActionType("stop");
+    taskTrackerAction.setRole("tasktracker");
+    actions.add(taskTrackerAction);
 
     ScriptAction nuke2 = new ScriptAction();
     nuke2.setScript("killall");
@@ -246,9 +272,10 @@ public class ConfigManager {
     actions.add(nukePackages);
     ScriptAction scrub = new ScriptAction();
     scrub.setScript("rm");
-    String[] scrubParameters = new String[2];
+    String[] scrubParameters = new String[3];
     scrubParameters[0] = "-rf";
-    scrubParameters[1] = "/grid/[0-3]/hadoop/var";
+    scrubParameters[1] = "/var/lib/hdfs";
+    scrubParameters[2] = "/var/lib/mapreduce";
     scrub.setParameters(scrubParameters);
     actions.add(scrub);
     
