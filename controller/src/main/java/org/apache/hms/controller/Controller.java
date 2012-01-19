@@ -29,10 +29,12 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hms.common.conf.CommonConfigurationKeys;
 import org.apache.hms.common.util.DaemonWatcher;
 import org.apache.hms.common.util.ExceptionUtil;
+import org.apache.hms.common.util.JAXBUtil;
 import org.apache.hms.common.util.MulticastDNS;
 import org.apache.hms.common.util.ServiceDiscoveryUtil;
 import org.apache.hms.controller.ClientHandler;
 import org.apache.hms.controller.CommandHandler;
+import org.apache.hms.controller.rest.Examples;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
@@ -196,6 +198,10 @@ public class Controller implements Watcher {
     for(String path : list) {
       createDirectory(path);
     }
+    
+    // Populate default configuration
+    zk.create(CommonConfigurationKeys.ZOOKEEPER_CONFIG_BLUEPRINT_PATH_DEFAULT+"/delete-hadoop-1.0-cluster", JAXBUtil.write(Examples.deleteHadoopCluster), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(CommonConfigurationKeys.ZOOKEEPER_CONFIG_BLUEPRINT_PATH_DEFAULT+"/create-hadoop-1.0-cluster", JAXBUtil.write(Examples.createHadoopCluster), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
   }
   
   public void run() {
