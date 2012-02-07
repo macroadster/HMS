@@ -84,6 +84,7 @@ mkdir -p ${RPM_BUILD_DIR}%{_conf_dir}
 mkdir -p ${RPM_BUILD_DIR}%{_log_dir}
 mkdir -p ${RPM_BUILD_DIR}%{_conf_dir}
 mkdir -p ${RPM_BUILD_DIR}/etc/init.d
+mkdir -p ${RPM_BUILD_DIR}/../BUILDROOT
 
 cp ${RPM_BUILD_DIR}/../../../../src/packages/rpm/init.d/hms-agent ${RPM_BUILD_DIR}/etc/init.d/hms-agent
 chmod 0755 ${RPM_BUILD_DIR}/etc/init.d/hms-agent
